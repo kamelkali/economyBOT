@@ -1,13 +1,6 @@
 import discord
 import datetime
 import os
-import threading
-import subprocess
-from manage import main
-
-import setup_economy
-import work
-import help
 
 from dotenv import load_dotenv
 from client import client, tree
