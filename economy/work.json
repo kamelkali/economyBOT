@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "text": "",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 2,
+        "text": "Text 2 text 2 text 2",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 3,
+        "text": "Text 3 text 3 text 3",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 4,
+        "text": "Text 4 text 4 text 4",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 5,
+        "text": "Text 5 text 5 text 5",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 6,
+        "text": "Text 6 text 6 text 6",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 7,
+        "text": "Text 7 text 7 text 7",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 8,
+        "text": "Text 8 text 8 text 8",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 9,
+        "text": "Text 9 text 9 text 9",
+        "minBalance": 1,
+        "maxBalance": 1000
+    },
+    {
+        "id": 10,
+        "text": "Text 10 text 10 text 10",
+        "minBalance": 1,
+        "maxBalance": 1000
+    }
+]
