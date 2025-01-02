@@ -1,22 +1,17 @@
 import discord
-
-import traceback
-
 from django.core.exceptions import ObjectDoesNotExist
 import requests
-from urllib3 import request
 
 from client import tree
-from backend.models import discord_users
+from backend.models import DiscordUsers
 from asgiref.sync import sync_to_async
 
 
 @sync_to_async
-def create_wallet(interaction: discord.Interaction,user_id):
+def create_wallet(interaction: discord.Interaction,user_id, discordName):
     user_exists = requests.get(f"http://127.0.0.1:8000/wallet/{user_id}")
-    print("CW_S:", user_exists, "request type ", type(user_exists))
     if user_exists.status_code == 404:
-        user = discord_users.objects.get_or_create(id=user_id, balance=1000)
+        user = DiscordUsers.objects.get_or_create(id=user_id, balance=1000,discord_name = discordName)
         print("Created user wallet: ", user)
         return True
 
@@ -31,8 +26,9 @@ def create_wallet(interaction: discord.Interaction,user_id):
 )
 async def createwallet(interaction: discord.Interaction):
     user_id = interaction.user.id
+    user_discordName = interaction.user.name
     try:
-        user_wallet = await create_wallet(interaction, user_id)
+        user_wallet = await create_wallet(interaction, user_id, user_discordName)
         print("CW: ", user_wallet)
 
         if user_wallet:
@@ -63,7 +59,6 @@ def delete_wallet(interaction: discord.Interaction,user_id):
                 return True
             else:
                 return False
-            print("DW: Deleted user wallet with id: ",user_id)
         return True
     except ObjectDoesNotExist:
         return False
@@ -81,7 +76,7 @@ async def deletewallet(interaction: discord.Interaction):
         else:
             await interaction.response.send_message(content="**You don’t have a wallet :octagonal_sign:**")
     except Exception as e:
-        print("discord.py sucks")
+        print(e)
 
 @sync_to_async
 def bal_fun(user_id):
@@ -112,11 +107,44 @@ async def bal(interaction: discord.Interaction):
         await interaction.response.send_message(content="You don't have a wallet! To create one, use `/createwallet`.")
     else:
         balance = user.json()["balance"]
+        tier = user.json()["tier"]
         balEmbed = discord.Embed(
             color=discord.Colour.green(),
             title="Your balance:",
-            description=f"**Money: {balance}\n**To check your crypto wallet type `/cbal`",
             type="rich",
         )
         balEmbed.set_footer(text="saharaBOT your best economy bot! ⚱️")
+        balEmbed.add_field(name="**Money stats**", value=f"Balance: {balance} $ \n Tier: {tier}",inline = True)
+        member = interaction.user
+        user_avatar = member.avatar.url
+        balEmbed.set_author(name=member.name, icon_url=user_avatar)
         await interaction.response.send_message(embed=balEmbed)
+
+
+@sync_to_async
+def leaderboard_fun():
+    response = requests.get("http://127.0.0.1:8000/leaderboard/")
+    if response.status_code == 200:
+        return response
+
+@tree.command(
+    name="leaderboard",
+    description="Top 20 biggest wallets"
+)
+async def leaderboard(interaction: discord.Interaction):
+    leaderboard = await leaderboard_fun()
+    json_lb = leaderboard.json()
+
+
+    lbEmbed = discord.Embed(color=discord.Color.blurple(), title="🏦 Top 20 biggest wallets:")
+    lbEmbed.set_footer(text="saharaBOT your best economy bot! ⚱️")
+    i = 0
+    for user in json_lb:
+        i+=1
+        lbEmbed.add_field(name="Place",value=f"#{i}", inline=True)
+        discord_name = user["discord_name"]
+        lbEmbed.add_field(name="User",value=discord_name,inline=True)
+        balance = user["balance"]
+        lbEmbed.add_field(name="Balance",value=balance,inline=True)
+
+    await interaction.response.send_message(embed=lbEmbed)

@@ -1,17 +1,50 @@
+from django.utils import timezone
 from django.db import models
 
-class discord_users(models.Model):
+class DiscordUsers(models.Model):
     id = models.BigIntegerField(primary_key = True)
     balance = models.FloatField()
+    work_cooldown = models.DateTimeField(default=timezone.now)
+    class Tier(models.TextChoices):
+        FIRST = "I"
+        SECOND = "II"
+        THIRD = "III"
+        FOURTH = "IV"
 
-class work(models.Model):
-    id = models.AutoField(primary_key = True)
-    text = models.TextField()
-    money = models.FloatField()
+    tier = models.CharField(
+            max_length=3,
+            choices=Tier.choices,
+            default=Tier.FIRST,
+    )
+    wallet_create_date = models.DateTimeField(auto_now_add=True)
+    discord_name = models.CharField(max_length=50, null=True)
 
-class jail(models.Model):
+class Work(models.Model):
+
+    class Tier(models.TextChoices):
+        FIRST = "I"
+        SECOND = "II"
+        THIRD = "III"
+        FOURTH = "IV"
+
+    work_id = models.AutoField(primary_key = True)
+    description = models.TextField(default="Description")
+    tier = models.CharField(
+        max_length=3,
+        choices = Tier.choices,
+        default = Tier.FIRST,
+    )
+    balance = models.FloatField(default=0.0)
+
+class Jail(models.Model):
     user_id = models.BigIntegerField
     bust_time = models.DateTimeField()
     fee = models.FloatField()
     release_time = models.DateTimeField()
 
+
+class Transaction(models.Model):
+    payer_id = models.BigIntegerField()
+    payee_id = models.BigIntegerField()
+    balance = models.FloatField()
+    date = models.DateTimeField(auto_now_add=True)

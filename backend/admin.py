@@ -1,5 +1,7 @@
 from django.contrib import admin
 
-from .models import discord_users
+from .models import DiscordUsers, Work, Transaction
 
-admin.site.register(discord_users)
+admin.site.register(DiscordUsers)
+admin.site.register(Work)
+admin.site.register(Transaction)
