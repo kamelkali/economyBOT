@@ -1,3 +1,4 @@
+from PyQt5.pylupdate import merge
 from django.template.defaultfilters import random
 from rest_framework import status
 from rest_framework.response import Response
@@ -9,6 +10,13 @@ from colorama import Fore
 from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 from django.utils import timezone
+
+def check_user_in_jail(request,user_id):
+    try:
+        jail_user = Jail.objects.get(id=user_id)
+        return True
+    except ObjectDoesNotExist:
+        return False
 
 @api_view(["GET"])
 def get_user_wallet(request, user_id)->Response:
@@ -33,25 +41,14 @@ def create_wallet(request)->Response:
     else:
         return Response({'detail':'unable to create user'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(["POST"])
-def delete_wallet(request)->Response:
-    try:
-        user_id = request.data.get('id')
-        user = DiscordUsers.objects.get(id=user_id)
-        user.delete()
-        return Response({'detail':'user deleted successfully'}, status=status.HTTP_200_OK)
-    except ObjectDoesNotExist:
-        return Response(
-            {"detail": "User not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-
 @api_view(["POST"])
 def work(request)->Response:
     try:
         user_id:int = request.data.get('id')
+        in_jail = check_user_in_jail(request,user_id)
+        if in_jail:
+            return Response({'detail':'user in jail'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         user = DiscordUsers.objects.get(id=user_id)
         print(user)
         query = Work.objects.raw(
@@ -90,8 +87,10 @@ def leaderboard(request) -> Response:
 @api_view(["POST"])
 def pay(request) -> Response:
     try:
-        print("Request data:", request.data)
         payer_id:int = request.data.get('payer_id')
+        in_jail = check_user_in_jail(request, payer_id)
+        if in_jail:
+            return Response({'detail': 'payer in jail'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         payee_id:int = request.data.get('payee_id')
 
         payer = DiscordUsers.objects.get(id=payer_id)
@@ -99,7 +98,7 @@ def pay(request) -> Response:
         balance = request.data.get('balance')
 
 
-        if payee == payer:
+        if payee == payer or balance <= 0:
             return Response({'detail':'bruh.'},status=status.HTTP_409_CONFLICT)
 
         if payer.balance < balance:
@@ -129,3 +128,34 @@ def get_transaction(request, payer_id) -> Response:
     except ObjectDoesNotExist:
         return Response({'detail':'transaction dont exist'},status=status.HTTP_404_NOT_FOUND)
 
+
+@api_view(["GET"])
+def shop_items(request) -> Response:
+    item_list = RegularShopItem.objects.all()
+    serialized_items = RegularItemsSerializer(item_list, many=True, context={'request': request}).data
+    merged_items = []
+    try:
+        wallet_id = request.data.get('id')
+        wallet = DiscordUsers.objects.get(id=wallet_id)
+        wallet_tier = wallet.tier
+
+        item_tier = str(wallet_tier) + "I"
+
+
+        if wallet_tier == "IV":
+            return
+
+        tier_item = TierShopItem.objects.get(tier=item_tier)
+
+        serialized_tier = TierItemsSerializer(tier_item, many=False, context={'request': request}).data
+
+        merged_items = serialized_items.data + [serialized_tier.data]
+
+    except Exception as e:
+        return Response({'ERROR: detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    finally:
+        if merged_items == "":
+            return Response(serialized_items, status=status.HTTP_200_OK)
+
+    return Response(merged_items, status=status.HTTP_200_OK)
