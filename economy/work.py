@@ -10,7 +10,7 @@ import requests
 
 @tree.command(
     name = "work",
-    description="debug"
+    description="Earn money in legal way"
 )
 async def work(interaction: discord.Interaction):
     try:
@@ -42,5 +42,7 @@ async def work(interaction: discord.Interaction):
                 print(u_cooldown)
                 ts_cooldown = datetime.strptime(u_cooldown, "%Y-%m-%dT%H:%M:%SZ");
                 await interaction.response.send_message(content=f"Your cooldown will end <t:{int(ts_cooldown.timestamp())}:R>")
+            elif api_response.status_code == 405:
+                await interaction.response.send_message(content=f"**You are in jail!** ⛔ For more info type `/jail` ")
     except Exception as e:
         print("Discord error: " + str(e))

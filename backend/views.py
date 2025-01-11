@@ -135,27 +135,28 @@ def shop_items(request) -> Response:
     serialized_items = RegularItemsSerializer(item_list, many=True, context={'request': request}).data
     merged_items = []
     try:
-        wallet_id = request.data.get('id')
+        wallet_id = request.query_params.get('id')
+
         wallet = DiscordUsers.objects.get(id=wallet_id)
         wallet_tier = wallet.tier
 
+        if wallet_tier == "IV" or not wallet_id:
+            return Response(serialized_items, status=status.HTTP_200_OK)
+
         item_tier = str(wallet_tier) + "I"
-
-
-        if wallet_tier == "IV":
-            return
 
         tier_item = TierShopItem.objects.get(tier=item_tier)
 
         serialized_tier = TierItemsSerializer(tier_item, many=False, context={'request': request}).data
 
-        merged_items = serialized_items.data + [serialized_tier.data]
+        merged_items = serialized_items + [serialized_tier]
+
+        if not merged_items:
+            return Response(serialized_items, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({'ERROR: detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    finally:
-        if merged_items == "":
-            return Response(serialized_items, status=status.HTTP_200_OK)
+    except TierShopItem.DoesNotExist:
+        return Response({'error': 'Tier item not found'}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(merged_items, status=status.HTTP_200_OK)

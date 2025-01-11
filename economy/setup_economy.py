@@ -2,7 +2,7 @@ import discord
 from django.core.exceptions import ObjectDoesNotExist
 import requests
 
-from client import tree
+from client import tree, client
 from backend.models import DiscordUsers
 from asgiref.sync import sync_to_async
 
@@ -40,43 +40,6 @@ async def createwallet(interaction: discord.Interaction):
     except Exception as e:
         print("discord.py sucks")
 
-
-
-
-@sync_to_async
-def delete_wallet(interaction: discord.Interaction,user_id):
-    try:
-        user = requests.get(f"http://127.0.0.1:8000/wallet/{user_id}")
-        print("CW_S:", user, "request type ", type(user))
-        if user.status_code == 404:
-            print("DW: User dont have a wallet")
-            return False
-        else:
-            print(user)
-            obj = {"id": user_id}
-            response = requests.post(f"http://127.0.0.1:8000/delete-wallet/",json=obj)
-            if response.status_code == 200:
-                return True
-            else:
-                return False
-        return True
-    except ObjectDoesNotExist:
-        return False
-
-@tree.command(
-    name="deletewallet",
-    description="Delete a wallet. Yeah, I also don’t know why someone would do that."
-)
-async def deletewallet(interaction: discord.Interaction):
-    user_id = interaction.user.id
-    try:
-        user_wallet = await delete_wallet(interaction, user_id)
-        if user_wallet:
-            await interaction.response.send_message(content="Successfully deleted your wallet!")
-        else:
-            await interaction.response.send_message(content="**You don’t have a wallet :octagonal_sign:**")
-    except Exception as e:
-        print(e)
 
 @sync_to_async
 def bal_fun(user_id):

@@ -35,6 +35,10 @@ async def pay(interaction: discord.Interaction, member: discord.Member,balance: 
         await interaction.response.send_message(content=f"A Error has occured !")
     elif pay_response == 200:
         await interaction.response.send_message(content=f"*Sucessfully paid !*")
+    elif pay_response == 409:
+        await interaction.response.send_message(content="bruh.")
+    elif pay_response == 405:
+        await interaction.response.send_message(content=f"**You are in jail!** ⛔ For more info type `/jail` ")
 
 
 
